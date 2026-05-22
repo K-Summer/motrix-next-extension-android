@@ -22,6 +22,7 @@ z.config({ jitless: true });
 // ── Types ────────────────────────────────────────────────────
 
 export interface DesktopApiConfig {
+  host: string;
   port: number;
   secret: string;
 }
@@ -104,9 +105,9 @@ export class DesktopApiClient {
     this.http = this.createHttpClient();
   }
 
-  /** Current base URL derived from the configured port. */
+  /** Current base URL derived from the configured host and port. */
   get baseUrl(): string {
-    return `http://127.0.0.1:${this.config.port}`;
+    return `http://${this.config.host}:${this.config.port}`;
   }
 
   /** Update config at runtime (e.g. when user changes port in settings). */

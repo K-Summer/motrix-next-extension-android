@@ -12,19 +12,19 @@ import {
 
 describe('parseConnectionConfig', () => {
   it('returns valid config unchanged', () => {
-    const input = { port: 9999, secret: 'mysecret' };
+    const input = { host: '127.0.0.1', port: 9999, secret: 'mysecret' };
     const result = parseConnectionConfig(input);
     expect(result).toEqual(input);
   });
 
   it('fills missing fields with defaults', () => {
     const result = parseConnectionConfig({});
-    expect(result).toEqual({ port: 16801, secret: '' });
+    expect(result).toEqual({ host: '127.0.0.1', port: 16801, secret: '' });
   });
 
   it('fills undefined input with defaults', () => {
     const result = parseConnectionConfig(undefined);
-    expect(result).toEqual({ port: 16801, secret: '' });
+    expect(result).toEqual({ host: '127.0.0.1', port: 16801, secret: '' });
   });
 
   it('replaces invalid port type with default', () => {
@@ -362,7 +362,7 @@ describe('parseDiagnosticEvents', () => {
 describe('parseStorage', () => {
   it('returns fully defaulted storage for empty object', () => {
     const result = parseStorage({});
-    expect(result.connection).toEqual({ port: 16801, secret: '' });
+    expect(result.connection).toEqual({ host: '127.0.0.1', port: 16801, secret: '' });
     expect(result.settings).toEqual({
       enabled: true,
       hideDownloadBar: false,
@@ -427,7 +427,7 @@ describe('parseStorage', () => {
       uiPrefs: { theme: 'dark', colorScheme: 'mint', locale: 'en', extra: true },
     });
 
-    expect(result.connection).toEqual({ port: 16802, secret: 'token' });
+    expect(result.connection).toEqual({ host: '127.0.0.1', port: 16802, secret: 'token' });
     expect(result.settings).toEqual({
       enabled: false,
       hideDownloadBar: true,
@@ -452,7 +452,7 @@ describe('parseStorage', () => {
       diagnosticLog: false,
     });
     // All fields should be defaults — not throw
-    expect(result.connection).toEqual({ port: 16801, secret: '' });
+    expect(result.connection).toEqual({ host: '127.0.0.1', port: 16801, secret: '' });
     expect(result.settings.enabled).toBe(true);
     expect(result.siteRules).toEqual([]);
     expect(result.uiPrefs.theme).toBe('system');

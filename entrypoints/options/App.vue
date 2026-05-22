@@ -101,6 +101,7 @@ const appearance = useAppearance(storageService, setTheme, (id) => {
 // ─── Preference Form (dirty-tracked settings) ──────────────────────
 
 interface SettingsForm {
+  host: string;
   port: number;
   secret: string;
   hideDownloadBar: boolean;
@@ -115,6 +116,7 @@ const interceptionScope = ref<InterceptionScope>({
 
 function buildForm(): SettingsForm {
   return {
+    host: DEFAULT_CONNECTION_CONFIG.host,
     port: DEFAULT_CONNECTION_CONFIG.port,
     secret: DEFAULT_CONNECTION_CONFIG.secret,
     hideDownloadBar: DEFAULT_DOWNLOAD_SETTINGS.hideDownloadBar,
@@ -145,6 +147,7 @@ const {
   buildForm,
   persist: async (f) => {
     await storageService.updateConnectionConfig({
+      host: f.host,
       port: f.port,
       secret: f.secret,
     });
@@ -239,6 +242,7 @@ async function handleForwardCookiesChange(value: boolean): Promise<void> {
 // ─── Connection Test ────────────────────────────────────────────────
 
 const connectionForTest = computed<ConnectionConfig>(() => ({
+  host: form.value.host,
   port: form.value.port,
   secret: form.value.secret,
 }));
@@ -259,6 +263,7 @@ async function loadFromStorage(): Promise<void> {
   const { storage: data } = await storageService.load();
 
   // Hydrate dirty-tracked form (schema-validated, no casts)
+  form.value.host = data.connection.host;
   form.value.port = data.connection.port;
   form.value.secret = data.connection.secret;
   interceptionEnabled.value = data.settings.enabled;
@@ -281,6 +286,7 @@ async function loadFromStorage(): Promise<void> {
 
 function applyConnectionStorageChange(value: unknown): void {
   const connection = parseConnectionConfig(value);
+  form.value.host = connection.host;
   form.value.port = connection.port;
   form.value.secret = connection.secret;
 }
@@ -437,12 +443,14 @@ onUnmounted(() => {
               <h2 class="section-title">{{ i18n('options_section_connection', 'Connection') }}</h2>
               <div class="card">
                 <ConnectionSection
+                  :host="form.host"
                   :port="form.port"
                   :secret="form.secret"
                   :status="connectionStatus"
                   :version="connectionVersion"
                   :error="connectionError"
                   :testing="testingConnection"
+                  @update:host="form.host = $event"
                   @update:port="form.port = $event"
                   @update:secret="form.secret = $event"
                   @test="testConnection"

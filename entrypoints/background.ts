@@ -39,6 +39,13 @@ export default defineBackground(() => {
     protocol: keyof InterceptionScope;
   };
 
+  type ContentDownloadMessage = {
+    type: 'HANDLE_CONTENT_DOWNLOAD';
+    url: string;
+    sourceUrl: string;
+    reason: string;
+  };
+
   function parseExternalProtocolMessage(msg: unknown): ExternalProtocolMessage | null {
     if (msg == null || typeof msg !== 'object') return null;
     const raw = msg as Record<string, unknown>;
@@ -49,6 +56,19 @@ export default defineBackground(() => {
       type: 'HANDLE_EXTERNAL_PROTOCOL',
       url: raw.url,
       protocol: raw.protocol,
+    };
+  }
+
+  function parseContentDownloadMessage(msg: unknown): ContentDownloadMessage | null {
+    if (msg == null || typeof msg !== 'object') return null;
+    const raw = msg as Record<string, unknown>;
+    if (raw.type !== 'HANDLE_CONTENT_DOWNLOAD') return null;
+    if (typeof raw.url !== 'string') return null;
+    return {
+      type: 'HANDLE_CONTENT_DOWNLOAD',
+      url: raw.url,
+      sourceUrl: typeof raw.sourceUrl === 'string' ? raw.sourceUrl : '',
+      reason: typeof raw.reason === 'string' ? raw.reason : 'unknown',
     };
   }
 
@@ -107,7 +127,7 @@ export default defineBackground(() => {
   }
 
   // ─── Desktop API client ───────────────────────
-  const desktopClient = new DesktopApiClient({ port: 16801, secret: '' });
+  const desktopClient = new DesktopApiClient({ host: '127.0.0.1', port: 16801, secret: '' });
   const wakeService = new WakeService();
 
   // ─── Load config from storage on startup ──────────
@@ -120,6 +140,7 @@ export default defineBackground(() => {
 
       // Sync desktop HTTP API client config from stored API settings
       desktopClient.updateConfig({
+        host: data.connection.host,
         port: data.connection.port,
         secret: data.connection.secret,
       });
@@ -281,7 +302,7 @@ export default defineBackground(() => {
         'Could not reach Motrix Next',
       );
       try {
-        browser.notifications.create(payload.id, payload.options);
+        browser.notifications?.create?.(payload.id, payload.options);
       } catch (e) {
         logWarn(
           'notification_create_failed',
@@ -320,11 +341,13 @@ export default defineBackground(() => {
   };
 
   function registerFilenameMetadataListeners(): void {
-    const downloads = browser.downloads as DownloadsWithDeterminingFilename;
-    downloads.onDeterminingFilename?.addListener((item, suggest) => {
-      filenameMetadata.rememberDeterminedFilename(item);
-      return filenameGate.hold(item.id, suggest);
-    });
+    const downloads = browser.downloads as DownloadsWithDeterminingFilename | undefined;
+    if (downloads?.onDeterminingFilename) {
+      downloads.onDeterminingFilename.addListener((item, suggest) => {
+        filenameMetadata.rememberDeterminedFilename(item);
+        return filenameGate.hold(item.id, suggest);
+      });
+    }
 
     const browserWithWebRequest = browser as typeof browser & { webRequest?: WebRequestApi };
     try {
@@ -362,44 +385,51 @@ export default defineBackground(() => {
   // onCreated is the industry-standard interception mechanism used by
   // NeatDownloadManager, Free Download Manager, and other MV3 extensions.
   // It fires reliably for every download regardless of how it was initiated.
+  //
+  // Firefox Android does not support browser.downloads. On that platform
+  // download interception is handled entirely by the content script.
 
-  browser.downloads.onCreated.addListener((item) => {
-    void (async () => {
-      try {
-        await ensureConfigLoaded();
-        await orchestrator.handleCreated({
-          id: item.id,
-          url: item.url,
-          finalUrl: item.finalUrl ?? item.url,
-          filename: item.filename ?? '',
-          fileSize: item.fileSize ?? -1,
-          mime: item.mime ?? '',
-          byExtensionId: (item as unknown as Record<string, unknown>).byExtensionId as
-            | string
-            | undefined,
-          state: item.state ?? 'in_progress',
-          referrer: item.referrer ?? '',
-        });
-      } catch (e) {
-        logError(
-          'download_handler_error',
-          `Download handler crashed: ${e instanceof Error ? e.message : String(e)}`,
-          {
+  if (browser.downloads?.onCreated) {
+    browser.downloads.onCreated.addListener((item) => {
+      void (async () => {
+        try {
+          await ensureConfigLoaded();
+          await orchestrator.handleCreated({
+            id: item.id,
             url: item.url,
+            finalUrl: item.finalUrl ?? item.url,
+            filename: item.filename ?? '',
             fileSize: item.fileSize ?? -1,
             mime: item.mime ?? '',
-            filename: item.filename ?? '',
-          },
-        );
-      } finally {
-        filenameGate.release(item.id);
-      }
-    })();
-  });
+            byExtensionId: (item as unknown as Record<string, unknown>).byExtensionId as
+              | string
+              | undefined,
+            state: item.state ?? 'in_progress',
+            referrer: item.referrer ?? '',
+          });
+        } catch (e) {
+          logError(
+            'download_handler_error',
+            `Download handler crashed: ${e instanceof Error ? e.message : String(e)}`,
+            {
+              url: item.url,
+              fileSize: item.fileSize ?? -1,
+              mime: item.mime ?? '',
+              filename: item.filename ?? '',
+            },
+          );
+        } finally {
+          filenameGate.release(item.id);
+        }
+      })();
+    });
+  }
 
   // Context menu — registration deferred (see loadConfig().then() below)
   // so that bgI18n has the user's locale loaded before reading the title.
+  // Firefox Android has limited context menu support — skip if unavailable.
   function registerContextMenus(): void {
+    if (!browser.contextMenus?.create) return;
     const menuItems = ContextMenuService.buildMenuItems();
     for (const menuItem of menuItems) {
       browser.contextMenus.create(
@@ -411,7 +441,6 @@ export default defineBackground(() => {
             ...Browser.contextMenus.ContextType[],
           ],
         },
-        // Ignore "duplicate id" error on re-registration
         () => void browser.runtime.lastError,
       );
     }
@@ -419,6 +448,7 @@ export default defineBackground(() => {
 
   /** Update existing context menu titles when locale changes. */
   function updateContextMenuLocale(): void {
+    if (!browser.contextMenus?.update) return;
     const menuItems = ContextMenuService.buildMenuItems();
     for (const menuItem of menuItems) {
       browser.contextMenus.update(menuItem.id, {
@@ -427,7 +457,7 @@ export default defineBackground(() => {
     }
   }
 
-  browser.contextMenus.onClicked.addListener((info) => {
+  browser.contextMenus?.onClicked?.addListener((info) => {
     const rawUrl = ContextMenuService.extractUrl({
       linkUrl: info.linkUrl,
       srcUrl: info.srcUrl,
@@ -457,7 +487,7 @@ export default defineBackground(() => {
   });
 
   // Notification clicks
-  browser.notifications.onClicked.addListener((notificationId) => {
+  browser.notifications?.onClicked?.addListener((notificationId) => {
     const action = NotificationService.resolveClickAction(notificationId);
     switch (action) {
       case 'launch-app':
@@ -515,6 +545,48 @@ export default defineBackground(() => {
         }
       });
     }
+
+    const contentDownloadMessage = parseContentDownloadMessage(msg);
+    if (contentDownloadMessage) {
+      void loadConfig().then(async () => {
+        if (!settings.enabled || !settings.interceptionScope.browserDownloads) {
+          logInfo(
+            'download_skipped',
+            `Skipped content download: ${contentDownloadMessage.url}`,
+            {
+              url: contentDownloadMessage.url,
+              stage: 'enabled',
+            },
+          );
+          return;
+        }
+
+        logInfo(
+          'download_intercepted',
+          `Content download intercepted: ${contentDownloadMessage.url}`,
+          {
+            url: contentDownloadMessage.url,
+            reason: contentDownloadMessage.reason,
+            tabUrl: contentDownloadMessage.sourceUrl,
+          },
+        );
+
+        try {
+          await orchestrator.sendUrl(
+            contentDownloadMessage.url,
+            contentDownloadMessage.sourceUrl,
+          );
+        } catch (e) {
+          logError(
+            'download_failed',
+            `Content download failed: ${e instanceof Error ? e.message : String(e)}`,
+            {
+              url: contentDownloadMessage.url,
+            },
+          );
+        }
+      });
+    }
   });
 
   // Storage change listener — update config with schema validation
@@ -526,6 +598,7 @@ export default defineBackground(() => {
     if (changes.connection?.newValue) {
       const conn = parseConnectionConfig(changes.connection.newValue);
       desktopClient.updateConfig({
+        host: conn.host,
         port: conn.port,
         secret: conn.secret,
       });

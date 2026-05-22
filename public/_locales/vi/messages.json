@@ -455,5 +455,17 @@
   "options_scope_thunder_desc": {
     "message": "Liên kết thunder: được mở từ trang web",
     "description": "Description for the Thunder link interception scope toggle."
+  },
+  "ext_name_android": {
+    "message": "Motrix Next Extension (Android)",
+    "description": "Firefox Android extension name"
+  },
+  "options_api_host_label": {
+    "message": "Máy chủ",
+    "description": "Label for the API host input"
+  },
+  "options_api_host_placeholder": {
+    "message": "Địa chỉ IP",
+    "description": "Placeholder text for API host input"
   }
 }

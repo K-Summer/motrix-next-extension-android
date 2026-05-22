@@ -29,7 +29,10 @@ export default defineConfig({
     firefoxProfile: FIREFOX_PROFILE,
     keepProfileChanges: true,
   },
-  manifest: ({ browser }) => buildExtensionManifest(browser),
+  manifest: ({ browser }) =>
+    buildExtensionManifest(browser, {
+      android: process.env.FIREFOX_ANDROID === 'true',
+    }),
   vite: () => ({
     build: {
       // WXT builds the service worker as an IIFE, so manual code-splitting is

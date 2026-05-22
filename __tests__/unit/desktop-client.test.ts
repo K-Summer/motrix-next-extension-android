@@ -25,6 +25,7 @@ async function readJsonBody(request: Request): Promise<unknown> {
 
 describe('DesktopApiClient', () => {
   const defaultConfig: DesktopApiConfig = {
+    host: '127.0.0.1',
     port: 16801,
     secret: 'test-secret',
   };
@@ -43,12 +44,12 @@ describe('DesktopApiClient', () => {
   });
 
   it('uses custom port in base URL', () => {
-    const c = new DesktopApiClient({ port: 9999, secret: '' });
-    expect(c.baseUrl).toBe('http://127.0.0.1:9999');
+    const c = new DesktopApiClient({ host: '192.168.1.100', port: 9999, secret: '' });
+    expect(c.baseUrl).toBe('http://192.168.1.100:9999');
   });
 
   it('allows updating config at runtime', () => {
-    client.updateConfig({ port: 12345, secret: 'new-secret' });
+    client.updateConfig({ host: '127.0.0.1', port: 12345, secret: 'new-secret' });
     expect(client.baseUrl).toBe('http://127.0.0.1:12345');
   });
 
@@ -135,7 +136,7 @@ describe('DesktopApiClient', () => {
     });
 
     it('omits Authorization header when secret is empty', async () => {
-      const noAuthClient = new DesktopApiClient({ port: 16801, secret: '' });
+      const noAuthClient = new DesktopApiClient({ host: '127.0.0.1', port: 16801, secret: '' });
       vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
         new Response(JSON.stringify({ action: 'queued' }), { status: 200 }),
       );
@@ -222,7 +223,7 @@ describe('DesktopApiClient', () => {
     });
 
     it('omits Authorization when secret is empty', async () => {
-      const noAuthClient = new DesktopApiClient({ port: 16801, secret: '' });
+      const noAuthClient = new DesktopApiClient({ host: '127.0.0.1', port: 16801, secret: '' });
       vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
         new Response(
           JSON.stringify({

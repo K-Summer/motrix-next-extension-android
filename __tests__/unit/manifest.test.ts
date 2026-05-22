@@ -42,7 +42,7 @@ describe('buildExtensionManifest', () => {
       'http://*/*',
     ]);
     expect(manifest.optional_host_permissions).toEqual([]);
-    expect(manifest.browser_specific_settings?.gecko.id).toBe(
+    expect(manifest.browser_specific_settings?.gecko?.id).toBe(
       'motrix-next-extension@aninsomniacy.dev',
     );
   });

@@ -30,7 +30,7 @@ describe('StorageService.load', () => {
 
     const { storage: result, migration } = await service.load();
 
-    expect(result.connection).toEqual({ port: 16801, secret: '' });
+    expect(result.connection).toEqual({ host: '127.0.0.1', port: 16801, secret: '' });
     expect(result.settings.enabled).toBe(true);
     expect(result.siteRules).toEqual([]);
     expect(result.uiPrefs.theme).toBe('system');
@@ -83,10 +83,10 @@ describe('StorageService.saveConnectionConfig', () => {
     const api = createMockApi({});
     const service = new StorageService(api);
 
-    await service.saveConnectionConfig({ port: 9000, secret: 'abc' });
+    await service.saveConnectionConfig({ host: '127.0.0.1', port: 9000, secret: 'abc' });
 
     expect(api.set).toHaveBeenCalledWith({
-      connection: { port: 9000, secret: 'abc' },
+      connection: { host: '127.0.0.1', port: 9000, secret: 'abc' },
     });
   });
 });
@@ -97,14 +97,14 @@ describe('StorageService.updateConnectionConfig', () => {
   it('patches connection config while preserving existing fields', async () => {
     const api = createMockApi({
       _version: 2,
-      connection: { port: 16801, secret: 'token' },
+      connection: { host: '127.0.0.1', port: 16801, secret: 'token' },
     });
     const service = new StorageService(api);
 
     await service.updateConnectionConfig({ port: 16802 });
 
     expect(api.set).toHaveBeenLastCalledWith({
-      connection: { port: 16802, secret: 'token' },
+      connection: { host: '127.0.0.1', port: 16802, secret: 'token' },
     });
   });
 });

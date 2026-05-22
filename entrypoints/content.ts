@@ -1,19 +1,13 @@
 import { browser } from 'wxt/browser';
-import { createExternalProtocolClickHandler, type ExternalProtocol } from '@/lib/services';
+import {
+  createExternalProtocolClickHandler,
+  type ExternalProtocol,
+} from '@/lib/services';
 import { parseDownloadSettings } from '@/lib/storage';
+import { detectDownloadLink } from '@/lib/download';
 import { DEFAULT_DOWNLOAD_SETTINGS } from '@/shared/constants';
 import type { InterceptionScope } from '@/shared/types';
 
-/**
- * @fileoverview Content script for external protocol link interception.
- *
- * Protocol links are not HTTP downloads — `browser.downloads` and
- * `browser.webRequest` cannot intercept them. This content script captures
- * clicks at the DOM level and routes supported links to the background service
- * worker via `browser.runtime.sendMessage`.
- *
- * The background handles the URI through the desktop API.
- */
 export default defineContentScript({
   matches: ['<all_urls>'],
   runAt: 'document_idle',
@@ -45,11 +39,28 @@ export default defineContentScript({
       },
     });
 
-    // Use capturing phase to intercept before any page-level handlers
-    document.addEventListener(
-      'click',
-      handleProtocolClick,
-      true, // capture phase
-    );
+    function handleDownloadClick(event: MouseEvent): void {
+      if (!interceptionEnabled || !interceptionScope.browserDownloads) return;
+
+      const detected = detectDownloadLink(event.target as Element);
+      if (!detected) return;
+
+      if (detected.reason === 'protocol') {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      void browser.runtime.sendMessage({
+        type: 'HANDLE_CONTENT_DOWNLOAD',
+        url: detected.url,
+        sourceUrl: window.location.href,
+        reason: detected.reason,
+      });
+    }
+
+    document.addEventListener('click', handleProtocolClick, true);
+    document.addEventListener('click', handleDownloadClick, true);
   },
 });

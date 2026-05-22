@@ -230,7 +230,7 @@ describe('DownloadOrchestrator', () => {
         .mockImplementation(async () => {
           calls.push('cancel');
         });
-      const desktopClient = new DesktopApiClient({ port: 16801, secret: 'secret' });
+      const desktopClient = new DesktopApiClient({ host: '127.0.0.1', port: 16801, secret: 'secret' });
       const addDownload = vi.spyOn(desktopClient, 'addDownload').mockImplementation(async () => {
         calls.push('route');
         return { action: 'queued' };
@@ -397,7 +397,7 @@ describe('DownloadOrchestrator', () => {
 
   describe('handleCreated — cookie forwarding', () => {
     it('forwards cookies only to the HTTP API path', async () => {
-      const desktopClient = new DesktopApiClient({ port: 16801, secret: 'secret' });
+      const desktopClient = new DesktopApiClient({ host: '127.0.0.1', port: 16801, secret: 'secret' });
       const addDownload = vi
         .spyOn(desktopClient, 'addDownload')
         .mockResolvedValue({ action: 'queued' });
@@ -515,7 +515,7 @@ describe('DownloadOrchestrator', () => {
     });
 
     it('does not forward generic download placeholder as HTTP API filename', async () => {
-      const desktopClient = new DesktopApiClient({ port: 16801, secret: 'secret' });
+      const desktopClient = new DesktopApiClient({ host: '127.0.0.1', port: 16801, secret: 'secret' });
       const addDownload = vi
         .spyOn(desktopClient, 'addDownload')
         .mockResolvedValue({ action: 'queued' });
@@ -539,7 +539,7 @@ describe('DownloadOrchestrator', () => {
     });
 
     it('does not forward numeric download-item placeholder as HTTP API filename', async () => {
-      const desktopClient = new DesktopApiClient({ port: 16801, secret: 'secret' });
+      const desktopClient = new DesktopApiClient({ host: '127.0.0.1', port: 16801, secret: 'secret' });
       const addDownload = vi
         .spyOn(desktopClient, 'addDownload')
         .mockResolvedValue({ action: 'queued' });
@@ -563,7 +563,7 @@ describe('DownloadOrchestrator', () => {
     });
 
     it('forwards filename metadata captured after browser filename determination', async () => {
-      const desktopClient = new DesktopApiClient({ port: 16801, secret: 'secret' });
+      const desktopClient = new DesktopApiClient({ host: '127.0.0.1', port: 16801, secret: 'secret' });
       const addDownload = vi
         .spyOn(desktopClient, 'addDownload')
         .mockResolvedValue({ action: 'queued' });
@@ -597,7 +597,7 @@ describe('DownloadOrchestrator', () => {
     });
 
     it('forwards meaningful unicode filename as HTTP API filename', async () => {
-      const desktopClient = new DesktopApiClient({ port: 16801, secret: 'secret' });
+      const desktopClient = new DesktopApiClient({ host: '127.0.0.1', port: 16801, secret: 'secret' });
       const addDownload = vi
         .spyOn(desktopClient, 'addDownload')
         .mockResolvedValue({ action: 'queued' });
@@ -622,7 +622,7 @@ describe('DownloadOrchestrator', () => {
     });
 
     it('decodes RFC 2047 encoded-word filename before forwarding to HTTP API', async () => {
-      const desktopClient = new DesktopApiClient({ port: 16801, secret: 'secret' });
+      const desktopClient = new DesktopApiClient({ host: '127.0.0.1', port: 16801, secret: 'secret' });
       const addDownload = vi
         .spyOn(desktopClient, 'addDownload')
         .mockResolvedValue({ action: 'queued' });
@@ -647,7 +647,7 @@ describe('DownloadOrchestrator', () => {
     });
 
     it('includes hasCookie: true in diagnostic context when cookies are collected', async () => {
-      const desktopClient = new DesktopApiClient({ port: 16801, secret: 'secret' });
+      const desktopClient = new DesktopApiClient({ host: '127.0.0.1', port: 16801, secret: 'secret' });
       vi.spyOn(desktopClient, 'addDownload').mockResolvedValue({ action: 'queued' });
       const cookieDeps = createMockDeps({
         desktopClient,
@@ -727,7 +727,7 @@ describe('DownloadOrchestrator', () => {
     });
 
     it('does not fall back to deep-link when HTTP API authentication fails', async () => {
-      const desktopClient = new DesktopApiClient({ port: 16801, secret: 'wrong-secret' });
+      const desktopClient = new DesktopApiClient({ host: '127.0.0.1', port: 16801, secret: 'wrong-secret' });
       vi.spyOn(desktopClient, 'addDownload').mockRejectedValue(new ApiAuthError());
       const authDeps = createMockDeps({
         desktopClient,

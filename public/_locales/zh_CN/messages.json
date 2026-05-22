@@ -3,6 +3,10 @@
     "message": "Motrix Next Extension",
     "description": "扩展显示名称"
   },
+  "ext_name_android": {
+    "message": "Motrix Next Extension (Android)",
+    "description": "Firefox Android 扩展显示名称"
+  },
   "ext_description": {
     "message": "将浏览器下载发送到 Motrix Next — 基于 aria2 的现代下载管理器",
     "description": "在浏览器和应用商店中显示的扩展描述"
@@ -375,6 +379,14 @@
   "popup_toggle_disabled": {
     "message": "已暂停",
     "description": "Label next to the interception toggle when inactive"
+  },
+  "options_api_host_label": {
+    "message": "主机地址",
+    "description": "API 主机输入标签"
+  },
+  "options_api_host_placeholder": {
+    "message": "IP 地址或主机名",
+    "description": "API 主机输入占位符"
   },
   "options_api_port_label": {
     "message": "API 端口",

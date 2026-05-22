@@ -15,6 +15,7 @@ import { CheckmarkCircleOutline, CloseCircleOutline } from '@vicons/ionicons5';
 import { ConnectionStatus } from '@/lib/services';
 
 const props = defineProps<{
+  host: string;
   port: number;
   secret: string;
   status: ConnectionStatus;
@@ -24,6 +25,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
+  'update:host': [value: string];
   'update:port': [value: number];
   'update:secret': [value: string];
   test: [];
@@ -53,6 +55,14 @@ const errorMessage = computed(() => {
 <template>
   <div class="section">
     <div class="section__grid">
+      <NFormItem :label="i18n('options_api_host_label', 'Host')">
+        <NInput
+          :value="host"
+          :placeholder="i18n('options_api_host_placeholder', 'IP or hostname')"
+          style="width: 200px"
+          @update:value="(v: string) => emit('update:host', v)"
+        />
+      </NFormItem>
       <NFormItem :label="i18n('options_api_port_label', 'API Port')">
         <NInputNumber
           :value="port"

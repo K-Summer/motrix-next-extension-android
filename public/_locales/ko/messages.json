@@ -455,5 +455,17 @@
   "options_scope_thunder_desc": {
     "message": "웹 페이지에서 열린 thunder: 링크",
     "description": "Description for the Thunder link interception scope toggle."
+  },
+  "ext_name_android": {
+    "message": "Motrix Next Extension (Android)",
+    "description": "Firefox Android extension name"
+  },
+  "options_api_host_label": {
+    "message": "호스트",
+    "description": "Label for the API host input"
+  },
+  "options_api_host_placeholder": {
+    "message": "IP 주소",
+    "description": "Placeholder text for API host input"
   }
 }

@@ -44,6 +44,8 @@ export interface Aria2InputOptions {
 // ─── Connection Config Types ────────────────────────────
 
 export interface ConnectionConfig {
+  /** Hostname or IP address of the machine running Motrix Next. */
+  host: string;
   /** Port for the desktop app's HTTP API. */
   port: number;
   /** Shared secret for the HTTP API Bearer token auth. */

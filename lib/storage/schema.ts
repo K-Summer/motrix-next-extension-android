@@ -32,6 +32,11 @@ import {
 // ─── Leaf Schemas ───────────────────────────────────────
 
 const ConnectionConfigSchema = z.object({
+  host: z
+    .string()
+    .min(1)
+    .catch(DEFAULT_CONNECTION_CONFIG.host)
+    .default(DEFAULT_CONNECTION_CONFIG.host),
   port: z
     .number()
     .int()

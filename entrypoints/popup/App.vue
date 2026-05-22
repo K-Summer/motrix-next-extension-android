@@ -159,7 +159,11 @@ function bindStorageChanges(): void {
     if (changes.connection?.newValue) {
       const connection = parseConnectionConfig(changes.connection.newValue);
       connectionPort.value = connection.port;
-      apiClient.updateConfig({ port: connection.port, secret: connection.secret });
+      apiClient.updateConfig({
+        host: connection.host,
+        port: connection.port,
+        secret: connection.secret,
+      });
       void fetchData();
     }
 
@@ -192,7 +196,11 @@ onMounted(async () => {
 
   // Initialize API client with validated config
   connectionPort.value = data.connection.port;
-  apiClient = new DesktopApiClient({ port: data.connection.port, secret: data.connection.secret });
+  apiClient = new DesktopApiClient({
+    host: data.connection.host,
+    port: data.connection.port,
+    secret: data.connection.secret,
+  });
   bindStorageChanges();
 
   // Smart polling with exponential backoff + visibility awareness
@@ -340,7 +348,9 @@ onUnmounted(() => {
 
 <style scoped>
 .popup-root {
-  width: 380px;
+  width: 100%;
+  max-width: 380px;
+  min-width: 320px;
   background: var(--color-surface);
   color: var(--color-on-surface);
   font-family: var(--font-sans);
@@ -399,5 +409,27 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+@media (max-width: 380px) {
+  .popup-root {
+    min-width: 280px;
+  }
+}
+
+@media (max-width: 320px) {
+  .popup-root {
+    min-width: 100%;
+  }
+
+  .popup-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .popup-actions__left {
+    width: 100%;
+    justify-content: center;
+  }
 }
 </style>

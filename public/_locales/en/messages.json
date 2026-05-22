@@ -3,6 +3,10 @@
     "message": "Motrix Next Extension",
     "description": "Extension display name"
   },
+  "ext_name_android": {
+    "message": "Motrix Next Extension (Android)",
+    "description": "Extension display name for Firefox Android"
+  },
   "ext_description": {
     "message": "Send browser downloads to Motrix Next — a modern download manager powered by aria2",
     "description": "Extension description shown in browser and web store"
@@ -375,6 +379,14 @@
   "popup_toggle_disabled": {
     "message": "Paused",
     "description": "Label next to the interception toggle when inactive"
+  },
+  "options_api_host_label": {
+    "message": "Host",
+    "description": "Label for the API host input"
+  },
+  "options_api_host_placeholder": {
+    "message": "IP or hostname",
+    "description": "Placeholder text for API host input"
   },
   "options_api_port_label": {
     "message": "API Port",

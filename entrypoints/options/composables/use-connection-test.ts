@@ -22,6 +22,7 @@ export function useConnectionTest(
     connectionError.value = null;
 
     const apiClient = new DesktopApiClient({
+      host: connectionConfig.value.host,
       port: connectionConfig.value.port,
       secret: connectionConfig.value.secret,
     });
